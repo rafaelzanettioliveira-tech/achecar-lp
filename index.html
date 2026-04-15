@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Achecar — Consulta de placa completa em 30 segundos</title>
+<meta name="description" content="Antes de comprar um carro usado, descubra leilão, sinistro, débitos, roubo e KM real. Mais de 2 milhões de consultas realizadas.">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          brand: {
+            50:  '#eef4ff',
+            100: '#dbe5ff',
+            500: '#2f5fe0',
+            600: '#1e47c2',
+            700: '#1838a0',
+            800: '#142d80',
+            900: '#0f1f5c'
+          }
+        },
+        fontFamily: {
+          sans: ['Inter', 'system-ui', 'sans-serif'],
+          mono: ['Roboto Mono', 'monospace']
+        }
+      }
+    }
+  }
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', sans-serif; color: #0f172a; }
+
+  /* Placa Mercosul realista */
+  .placa-mercosul {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border: 3px solid #0f172a;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(15,23,42,0.15), inset 0 0 0 2px #fff;
+    position: relative;
+    overflow: hidden;
+  }
+  .placa-mercosul::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 18%;
+    background: #1e47c2;
+    border-bottom: 1px solid #0f172a;
+  }
+  .placa-mercosul-label {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 18%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    z-index: 2;
+  }
+  .placa-input {
+    font-family: 'Roboto Mono', monospace;
+    font-size: clamp(2rem, 7vw, 3.5rem);
+    font-weight: 700;
+    text-align: center;
+    background: transparent;
+    border: none;
+    outline: none;
+    width: 100%;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #0f172a;
+    padding-top: 18%;
+  }
+  .placa-input::placeholder { color: #cbd5e1; }
+
+  /* Cards com bordas suaves, sem glow */
+  .card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    transition: all .2s ease;
+  }
+  .card:hover {
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+  }
+
+  /* Selo de risco discreto */
+  .risk-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .risk-high { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+  .risk-med  { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+  .risk-low  { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+
+  /* CTA primário */
+  .btn-primary {
+    background: #16a34a;
+    color: #fff;
+    font-weight: 600;
+    padding: 14px 28px;
+    border-radius: 10px;
+    transition: all .15s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+  .btn-primary:hover { background: #15803d; transform: translateY(-1px); }
+
+  .btn-outline {
+    background: transparent;
+    color: #1838a0;
+    border: 1.5px solid #1838a0;
+    font-weight: 600;
+    padding: 12px 22px;
+    border-radius: 10px;
+  }
+  .btn-outline:hover { background: #eef4ff; }
+
+  /* Faixa de números */
+  .stat-divider { background: linear-gradient(180deg, #f8fafc 0%, #fff 100%); }
+
+  /* FAQ */
+  details > summary { list-style: none; cursor: pointer; }
+  details > summary::-webkit-details-marker { display: none; }
+  details[open] .faq-icon { transform: rotate(45deg); }
+  .faq-icon { transition: transform .2s ease; }
+
+  /* Ad copy block — biblioteca interna */
+  .ad-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    position: relative;
+  }
+  .ad-card .copy-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+  }
+  .ad-card .copy-btn:hover { background: #e2e8f0; }
+  .ad-body { white-space: pre-wrap; font-size: 14px; line-height: 1.55; color: #1e293b; }
+  .ad-angle {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #1838a0;
+  }
+
+  /* Tab nav anúncios */
+  .ad-filter[data-active="true"] {
+    background: #1838a0;
+    color: #fff;
+    border-color: #1838a0;
+  }
+</style>
+</head>
+<body class="bg-white">
+
+<!-- HEADER -->
+<header class="border-b border-slate-200 bg-white sticky top-0 z-40 backdrop-blur bg-white/90">
+  <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+    <a href="#" class="flex items-center gap-2">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1838a0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+      <span class="font-bold text-xl text-slate-900">Achecar</span>
+    </a>
+    <nav class="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600">
+      <a href="#como-funciona" class="hover:text-slate-900">Como funciona</a>
+      <a href="#informacoes" class="hover:text-slate-900">O que descobre</a>
+      <a href="#planos" class="hover:text-slate-900">Planos</a>
+      <a href="#faq" class="hover:text-slate-900">Dúvidas</a>
+    </nav>
+    <a href="#consultar" class="text-sm font-semibold text-brand-700 hover:text-brand-800">Consultar agora →</a>
+  </div>
+</header>
+
+<!-- HERO -->
+<section id="consultar" class="bg-gradient-to-b from-slate-50 to-white border-b border-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-14 md:py-20 grid md:grid-cols-2 gap-10 items-center">
+    <div>
+      <div class="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-full px-3 py-1.5 text-xs font-semibold text-slate-700 mb-5">
+        <span class="w-2 h-2 rounded-full bg-green-500"></span>
+        Mais de 2 milhões de consultas realizadas
+      </div>
+      <h1 class="text-4xl md:text-5xl lg:text-[3.4rem] font-bold leading-[1.05] text-slate-900 mb-5">
+        Antes de comprar esse carro,<br>
+        <span class="text-brand-700">descubra o que o vendedor não te conta.</span>
+      </h1>
+      <p class="text-lg text-slate-600 mb-7 leading-relaxed max-w-xl">
+        Em 30 segundos você recebe o histórico completo do veículo: leilão, sinistro, débitos, roubo, KM real e mais de 40 informações — tudo a partir da placa.
+      </p>
+
+      <!-- PLACA MERCOSUL FORM -->
+      <form class="placa-mercosul w-full max-w-md mb-6 aspect-[3/1] relative" onsubmit="event.preventDefault(); document.getElementById('btn-consultar').click();">
+        <div class="placa-mercosul-label">
+          <span>BRASIL</span>
+          <span>MERCOSUL</span>
+        </div>
+        <input type="text" maxlength="7" class="placa-input" placeholder="ABC1D23" autocomplete="off">
+      </form>
+
+      <button id="btn-consultar" class="btn-primary text-lg w-full max-w-md flex items-center justify-center gap-2">
+        Consultar placa agora
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+
+      <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mt-5 text-sm text-slate-600">
+        <span class="flex items-center gap-1.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Resultado em 30s</span>
+        <span class="flex items-center gap-1.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Dados oficiais SENATRAN</span>
+        <span class="flex items-center gap-1.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Garantia de 7 dias</span>
+      </div>
+    </div>
+
+    <!-- COLUNA DIREITA: MOCKUP RELATÓRIO -->
+    <div class="hidden md:block">
+      <div class="card p-6 shadow-xl shadow-slate-200/60">
+        <div class="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
+          <div>
+            <p class="text-xs text-slate-500 font-medium">Relatório completo</p>
+            <p class="font-bold text-slate-900">Honda Civic EXL 2019</p>
+            <p class="text-xs text-slate-500 font-mono mt-1">Placa: ABC1D23 · Chassi: 9BH****</p>
+          </div>
+          <span class="risk-tag risk-high">⚠ 3 alertas críticos</span>
+        </div>
+
+        <div class="space-y-3">
+          <div class="flex items-center justify-between py-2.5 border-b border-slate-50">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M12 2L2 22h20L12 2z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </div>
+              <span class="text-sm font-medium text-slate-700">Histórico de leilão</span>
+            </div>
+            <span class="risk-tag risk-high">Encontrado</span>
+          </div>
+
+          <div class="flex items-center justify-between py-2.5 border-b border-slate-50">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              </div>
+              <span class="text-sm font-medium text-slate-700">Débitos abertos</span>
+            </div>
+            <span class="font-mono text-sm font-semibold text-amber-700">R$ 4.287,00</span>
+          </div>
+
+          <div class="flex items-center justify-between py-2.5 border-b border-slate-50">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              </div>
+              <span class="text-sm font-medium text-slate-700">Indícios de sinistro</span>
+            </div>
+            <span class="risk-tag risk-high">2 registros</span>
+          </div>
+
+          <div class="flex items-center justify-between py-2.5 border-b border-slate-50">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <span class="text-sm font-medium text-slate-700">Roubo / Furto</span>
+            </div>
+            <span class="risk-tag risk-low">Sem registro</span>
+          </div>
+
+          <div class="flex items-center justify-between py-2.5 border-b border-slate-50">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <span class="text-sm font-medium text-slate-700">KM declarado</span>
+            </div>
+            <span class="risk-tag risk-med">Divergência</span>
+          </div>
+
+          <div class="flex items-center justify-between py-2.5">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2"><path d="M12 2v6.5l3-1.5M12 22v-6.5l-3 1.5M3 7l3.5 2L3 11M21 7l-3.5 2L21 11M3 17l3.5-2L3 13M21 17l-3.5-2L21 13"/></svg>
+              </div>
+              <span class="text-sm font-medium text-slate-700">FIPE</span>
+            </div>
+            <span class="font-mono text-sm font-semibold text-slate-900">R$ 92.140</span>
+          </div>
+        </div>
+
+        <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
+          <span class="text-xs text-slate-500">+ 38 outras informações no relatório</span>
+          <span class="text-xs font-semibold text-brand-700">Ver completo →</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BARRA STATS -->
+<section class="border-b border-slate-100 stat-divider">
+  <div class="max-w-6xl mx-auto px-4 py-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+    <div>
+      <p class="text-3xl font-bold text-brand-700">2.1M+</p>
+      <p class="text-sm text-slate-600 mt-1">Consultas realizadas</p>
+    </div>
+    <div>
+      <p class="text-3xl font-bold text-brand-700">40+</p>
+      <p class="text-sm text-slate-600 mt-1">Informações por consulta</p>
+    </div>
+    <div>
+      <p class="text-3xl font-bold text-brand-700">4.9★</p>
+      <p class="text-sm text-slate-600 mt-1">Em 12 mil avaliações</p>
+    </div>
+    <div>
+      <p class="text-3xl font-bold text-brand-700">30s</p>
+      <p class="text-sm text-slate-600 mt-1">Para receber o relatório</p>
+    </div>
+  </div>
+</section>
+
+<!-- BLOCO DE DOR / NÚMEROS DO SETOR -->
+<section class="py-16 md:py-24 bg-slate-50">
+  <div class="max-w-5xl mx-auto px-4">
+    <div class="text-center mb-12">
+      <span class="text-xs font-bold uppercase tracking-widest text-brand-700">A realidade do mercado</span>
+      <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-3 leading-tight">
+        1 em cada 4 carros usados no Brasil tem histórico oculto.
+      </h2>
+      <p class="text-slate-600 mt-4 max-w-2xl mx-auto">
+        Sinistro grave, leilão estrutural, KM adulterada, débitos não informados. O vendedor não vai te contar — o relatório de placa, sim.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-5">
+      <div class="card p-6">
+        <p class="text-4xl font-bold text-red-600">26%</p>
+        <p class="font-semibold text-slate-900 mt-2">dos seminovos anunciados</p>
+        <p class="text-sm text-slate-600 mt-1">têm pelo menos uma restrição não declarada pelo vendedor.</p>
+      </div>
+      <div class="card p-6">
+        <p class="text-4xl font-bold text-red-600">R$ 18 mil</p>
+        <p class="font-semibold text-slate-900 mt-2">prejuízo médio</p>
+        <p class="text-sm text-slate-600 mt-1">de quem comprou um carro com histórico oculto, segundo Procon-SP.</p>
+      </div>
+      <div class="card p-6">
+        <p class="text-4xl font-bold text-red-600">68%</p>
+        <p class="font-semibold text-slate-900 mt-2">dos compradores</p>
+        <p class="text-sm text-slate-600 mt-1">não sabem que podem consultar o histórico apenas pela placa.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- O QUE VOCÊ DESCOBRE -->
+<section id="informacoes" class="py-16 md:py-24">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="text-center mb-12">
+      <span class="text-xs font-bold uppercase tracking-widest text-brand-700">O relatório completo</span>
+      <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-3">O que você descobre na consulta</h2>
+      <p class="text-slate-600 mt-3">Mais de 40 informações cruzadas de bases oficiais e privadas.</p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="card p-6">
+        <div class="w-11 h-11 rounded-lg bg-brand-50 flex items-center justify-center mb-4">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1838a0" stroke-width="2"><path d="M2 22h20M3 22V11h4v11M10 22V11h4v11M17 22V11h4v11M2 11l10-9 10 9"/></svg>
+        </div>
+        <h3 class="font-bold text-slate-900 mb-1">Histórico de leilão</h3>
+        <p class="text-sm text-slate-600">Descubra se o veículo foi leiloado, em qual leilão e a classificação (pequena, média, grande monta).</p>
+      </div>
+
+      <div class="card p-6">
+        <div class="w-11 h-11 rounded-lg bg-brand-50 flex items-center justify-center mb-4">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1838a0" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <h3 class="font-bold text-slate-900 mb-1">Indícios de sinistro</h3>
+        <p class="text-sm text-slate-600">Batidas registradas em seguradoras, perda total, danos estruturais e reparos pesados.</p>
+      </div>
+
+      <div class="card p-6">
+        <div class="w-11 h-11 rounded-lg bg-brand-50 flex items-center justify-center mb-4">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1838a0" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg>
+        </div>
+        <h3 class="font-bold text-slate-900 mb-1">Roubo e furto</h3>
+        <p class="text-sm text-slate-600">Cruzamento em tempo real com bases nacionais de boletins de ocorrência.</p>
+      </div>
+
+      <div class="card p-6">
+        <div class="w-11 h-11 rounded-lg bg-brand-50 flex items-center justify-center mb-4">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1838a0" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="6" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <h3 class="font-bold text-slate-900 mb-1">Débitos e multas</h3>
+        <p class="text-sm text-slate-600">IPVA, licenciamento, multas, taxas, DPVAT — valores atualizados detalhados por exercício.</p>
+      </div>
+
+      <div class="card p-6">
+        <div class="w-11 h-11 rounded-lg bg-brand-50 flex items-center justify-center mb-4">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1838a0" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <h3 class="font-bold text-slate-900 mb-1">KM real</h3>
+        <p class="text-sm text-slate-600">Histórico de quilometragem registrada em vistorias e revisões — detecta hodômetro adulterado.</p>
+      </div>
+
+      <div class="card p-6">
+        <div class="w-11 h-11 rounded-lg bg-brand-50 flex items-center justify-center mb-4">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1838a0" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <h3 class="font-bold text-slate-900 mb-1">Gravame e financiamento</h3>
+        <p class="text-sm text-slate-600">Saiba se está alienado, financiado ou totalmente quitado — evite comprar carro com banco no documento.</p>
+      </div>
+
+      <div class="card p-6">
+        <div class="w-11 h-11 rounded-lg bg-brand-50 flex items-center justify-center mb-4">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1838a0" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </div>
+        <h3 class="font-bold text-slate-900 mb-1">Tabela FIPE atualizada</h3>
+        <p class="text-sm text-slate-600">Valor oficial de mercado para a versão exata — não pague mais caro por achismo do vendedor.</p>
+      </div>
+
+      <div class="card p-6">
+        <div class="w-11 h-11 rounded-lg bg-brand-50 flex items-center justify-center mb-4">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1838a0" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>
+        </div>
+        <h3 class="font-bold text-slate-900 mb-1">Histórico de proprietários</h3>
+        <p class="text-sm text-slate-600">Quantidade de donos anteriores, estado de registro e tempo médio de posse de cada um.</p>
+      </div>
+
+      <div class="card p-6">
+        <div class="w-11 h-11 rounded-lg bg-brand-50 flex items-center justify-center mb-4">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1838a0" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        </div>
+        <h3 class="font-bold text-slate-900 mb-1">Recall de fábrica</h3>
+        <p class="text-sm text-slate-600">Recalls pendentes e atendidos — descubra se o veículo precisa voltar à concessionária.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMO FUNCIONA -->
+<section id="como-funciona" class="py-16 md:py-24 bg-slate-50">
+  <div class="max-w-5xl mx-auto px-4">
+    <div class="text-center mb-12">
+      <span class="text-xs font-bold uppercase tracking-widest text-brand-700">3 passos</span>
+      <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-3">Como funciona</h2>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="text-center">
+        <div class="w-14 h-14 rounded-full bg-brand-700 text-white font-bold text-xl flex items-center justify-center mx-auto mb-4">1</div>
+        <h3 class="font-bold text-slate-900 mb-2">Digite a placa</h3>
+        <p class="text-sm text-slate-600">Insira a placa do veículo (formato antigo ou Mercosul). Não precisa de CPF do vendedor.</p>
+      </div>
+      <div class="text-center">
+        <div class="w-14 h-14 rounded-full bg-brand-700 text-white font-bold text-xl flex items-center justify-center mx-auto mb-4">2</div>
+        <h3 class="font-bold text-slate-900 mb-2">Confirme e pague</h3>
+        <p class="text-sm text-slate-600">Pix, cartão ou boleto. Confirmação imediata. Sem cadastro complicado.</p>
+      </div>
+      <div class="text-center">
+        <div class="w-14 h-14 rounded-full bg-brand-700 text-white font-bold text-xl flex items-center justify-center mx-auto mb-4">3</div>
+        <h3 class="font-bold text-slate-900 mb-2">Receba em 30 segundos</h3>
+        <p class="text-sm text-slate-600">Relatório completo no e-mail e no painel. PDF para baixar e imprimir.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEPOIMENTOS -->
+<section class="py-16 md:py-24">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="text-center mb-12">
+      <span class="text-xs font-bold uppercase tracking-widest text-brand-700">Quem usou conta</span>
+      <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-3">Histórias de quem evitou prejuízo</h2>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-5">
+      <div class="card p-6">
+        <div class="flex text-amber-400 mb-3">
+          <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+        </div>
+        <p class="text-slate-700 leading-relaxed">"Quase comprei um Corolla 2018 por R$ 78 mil. O Achecar mostrou que ele tinha sido leiloado por perda total. Saí da loja na hora."</p>
+        <div class="mt-5 pt-4 border-t border-slate-100">
+          <p class="font-semibold text-slate-900 text-sm">Marcos Vieira</p>
+          <p class="text-xs text-slate-500">Belo Horizonte/MG · Comprador particular</p>
+        </div>
+      </div>
+
+      <div class="card p-6">
+        <div class="flex text-amber-400 mb-3">
+          <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+        </div>
+        <p class="text-slate-700 leading-relaxed">"O vendedor jurou que o carro não tinha multa. O relatório mostrou R$ 4.287 em débitos atrasados. Usei como argumento e baixei R$ 5 mil do preço."</p>
+        <div class="mt-5 pt-4 border-t border-slate-100">
+          <p class="font-semibold text-slate-900 text-sm">Patrícia Almeida</p>
+          <p class="text-xs text-slate-500">São Paulo/SP · Compra de seminovo</p>
+        </div>
+      </div>
+
+      <div class="card p-6">
+        <div class="flex text-amber-400 mb-3">
+          <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+        </div>
+        <p class="text-slate-700 leading-relaxed">"Tenho loja em Curitiba. Antes de receber qualquer carro em troca, consulto no Achecar. O plano ilimitado pagou sozinho na primeira semana."</p>
+        <div class="mt-5 pt-4 border-t border-slate-100">
+          <p class="font-semibold text-slate-900 text-sm">André Schmidt</p>
+          <p class="text-xs text-slate-500">Curitiba/PR · Lojista de seminovos</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PLANOS -->
+<section id="planos" class="py-16 md:py-24 bg-slate-50">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="text-center mb-12">
+      <span class="text-xs font-bold uppercase tracking-widest text-brand-700">Escolha seu plano</span>
+      <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-3">Planos que cabem no seu momento</h2>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-5 max-w-5xl mx-auto">
+      <!-- AVULSA -->
+      <div class="card p-7">
+        <p class="text-sm font-semibold text-slate-500 uppercase tracking-wide">Consulta Avulsa</p>
+        <p class="text-xs text-slate-500 mt-1">Para quem está fechando 1 carro</p>
+        <div class="mt-5 mb-5">
+          <span class="text-4xl font-bold text-slate-900">R$ 29,90</span>
+          <span class="text-sm text-slate-500">/consulta</span>
+        </div>
+        <ul class="space-y-2.5 text-sm text-slate-700 mb-7">
+          <li class="flex gap-2"><span class="text-green-600 font-bold">✓</span> 1 relatório completo</li>
+          <li class="flex gap-2"><span class="text-green-600 font-bold">✓</span> 40+ informações</li>
+          <li class="flex gap-2"><span class="text-green-600 font-bold">✓</span> PDF para baixar</li>
+          <li class="flex gap-2"><span class="text-green-600 font-bold">✓</span> Pix ou cartão</li>
+        </ul>
+        <a href="#consultar" class="btn-outline w-full block text-center">Consultar 1 placa</a>
+      </div>
+
+      <!-- COMBO 5 (DESTAQUE) -->
+      <div class="card p-7 ring-2 ring-brand-700 relative">
+        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-700 text-white text-xs font-bold px-3 py-1 rounded-full">MAIS ESCOLHIDO</span>
+        <p class="text-sm font-semibold text-brand-700 uppercase tracking-wide">Combo 5 Consultas</p>
+        <p class="text-xs text-slate-500 mt-1">Para quem está comparando opções</p>
+        <div class="mt-5 mb-5">
+          <span class="text-4xl font-bold text-slate-900">R$ 99,90</span>
+          <span class="text-sm text-slate-500">/pacote</span>
+          <p class="text-xs text-green-700 font-semibold mt-1">Economia de 33% por consulta</p>
+        </div>
+        <ul class="space-y-2.5 text-sm text-slate-700 mb-7">
+          <li class="flex gap-2"><span class="text-green-600 font-bold">✓</span> 5 relatórios completos</li>
+          <li class="flex gap-2"><span class="text-green-600 font-bold">✓</span> Validade de 90 dias</li>
+          <li class="flex gap-2"><span class="text-green-600 font-bold">✓</span> Painel para organizar</li>
+          <li class="flex gap-2"><span class="text-green-600 font-bold">✓</span> Suporte prioritário</li>
+        </ul>
+        <a href="#consultar" class="btn-primary w-full block text-center">Quero o combo</a>
+      </div>
+
+      <!-- REVENDEDOR -->
+      <div class="card p-7">
+        <p class="text-sm font-semibold text-slate-500 uppercase tracking-wide">Plano Revendedor</p>
+        <p class="text-xs text-slate-500 mt-1">Para lojistas e despachantes</p>
+        <div class="mt-5 mb-5">
+          <span class="text-4xl font-bold text-slate-900">R$ 299</span>
+          <span class="text-sm text-slate-500">/mês</span>
+        </div>
+        <ul class="space-y-2.5 text-sm text-slate-700 mb-7">
+          <li class="flex gap-2"><span class="text-green-600 font-bold">✓</span> Consultas ilimitadas</li>
+          <li class="flex gap-2"><span class="text-green-600 font-bold">✓</span> Múltiplos usuários</li>
+          <li class="flex gap-2"><span class="text-green-600 font-bold">✓</span> Relatório white-label</li>
+          <li class="flex gap-2"><span class="text-green-600 font-bold">✓</span> API disponível</li>
+        </ul>
+        <a href="#consultar" class="btn-outline w-full block text-center">Falar com vendas</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GARANTIA -->
+<section class="py-16">
+  <div class="max-w-3xl mx-auto px-4 text-center">
+    <div class="inline-flex w-20 h-20 rounded-full bg-green-50 items-center justify-center mb-5">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-3">Garantia incondicional de 7 dias</h2>
+    <p class="text-slate-600 leading-relaxed">Se o relatório vier incompleto, com erro ou não atender o que você precisava, devolvemos 100% do valor. Sem perguntas, sem burocracia.</p>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" class="py-16 md:py-24 bg-slate-50">
+  <div class="max-w-3xl mx-auto px-4">
+    <div class="text-center mb-10">
+      <span class="text-xs font-bold uppercase tracking-widest text-brand-700">Dúvidas frequentes</span>
+      <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-3">Perguntas que todo comprador faz</h2>
+    </div>
+
+    <div class="space-y-3">
+      <details class="card p-5 group">
+        <summary class="flex items-center justify-between gap-4">
+          <span class="font-semibold text-slate-900">É legal consultar a placa de outro carro?</span>
+          <span class="faq-icon text-brand-700 text-2xl font-light">+</span>
+        </summary>
+        <p class="text-slate-600 mt-3 text-sm leading-relaxed">Sim. A placa é dado público e a consulta utiliza bases oficiais e privadas autorizadas. Não retornamos dados pessoais do proprietário (CPF, endereço), apenas informações do veículo.</p>
+      </details>
+
+      <details class="card p-5 group">
+        <summary class="flex items-center justify-between gap-4">
+          <span class="font-semibold text-slate-900">Quanto tempo demora para receber o relatório?</span>
+          <span class="faq-icon text-brand-700 text-2xl font-light">+</span>
+        </summary>
+        <p class="text-slate-600 mt-3 text-sm leading-relaxed">Em média 30 segundos após a confirmação do pagamento. O relatório é enviado por e-mail e fica disponível no seu painel para download em PDF.</p>
+      </details>
+
+      <details class="card p-5 group">
+        <summary class="flex items-center justify-between gap-4">
+          <span class="font-semibold text-slate-900">Funciona para moto, caminhão e utilitário?</span>
+          <span class="faq-icon text-brand-700 text-2xl font-light">+</span>
+        </summary>
+        <p class="text-slate-600 mt-3 text-sm leading-relaxed">Sim. A consulta funciona para qualquer veículo emplacado no Brasil: carros, motos, caminhões, ônibus, vans e utilitários.</p>
+      </details>
+
+      <details class="card p-5 group">
+        <summary class="flex items-center justify-between gap-4">
+          <span class="font-semibold text-slate-900">Aceita placa Mercosul e antiga?</span>
+          <span class="faq-icon text-brand-700 text-2xl font-light">+</span>
+        </summary>
+        <p class="text-slate-600 mt-3 text-sm leading-relaxed">Sim. Os dois formatos são aceitos. Basta digitar a placa exatamente como está no veículo.</p>
+      </details>
+
+      <details class="card p-5 group">
+        <summary class="flex items-center justify-between gap-4">
+          <span class="font-semibold text-slate-900">E se o carro não tiver problema, vale a pena?</span>
+          <span class="faq-icon text-brand-700 text-2xl font-light">+</span>
+        </summary>
+        <p class="text-slate-600 mt-3 text-sm leading-relaxed">Vale ainda mais. Você compra com tranquilidade, com prova documental de que o carro é limpo. Muitos compradores usam o relatório como argumento de negociação ou seguro emocional.</p>
+      </details>
+
+      <details class="card p-5 group">
+        <summary class="flex items-center justify-between gap-4">
+          <span class="font-semibold text-slate-900">Quais formas de pagamento?</span>
+          <span class="faq-icon text-brand-700 text-2xl font-light">+</span>
+        </summary>
+        <p class="text-slate-600 mt-3 text-sm leading-relaxed">Pix (aprovação imediata), cartão de crédito em até 3x sem juros, ou boleto bancário.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="py-16 md:py-24 bg-brand-900 text-white">
+  <div class="max-w-3xl mx-auto px-4 text-center">
+    <h2 class="text-3xl md:text-4xl font-bold leading-tight mb-4">
+      Não compre no escuro.
+    </h2>
+    <p class="text-brand-100 text-lg mb-8 leading-relaxed">
+      R$ 29,90 podem te salvar de um prejuízo de R$ 50 mil. A escolha está na sua mão.
+    </p>
+
+    <form class="placa-mercosul max-w-md mx-auto mb-5 aspect-[3/1] relative" onsubmit="event.preventDefault(); window.location.hash='consultar';">
+      <div class="placa-mercosul-label">
+        <span>BRASIL</span>
+        <span>MERCOSUL</span>
+      </div>
+      <input type="text" maxlength="7" class="placa-input" placeholder="ABC1D23" autocomplete="off">
+    </form>
+
+    <a href="#consultar" class="btn-primary inline-flex items-center justify-center gap-2 text-lg">
+      Consultar agora por R$ 29,90
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </a>
+    <p class="text-sm text-brand-200 mt-5">Pagamento seguro · Garantia de 7 dias · Resultado em 30s</p>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- BIBLIOTECA DE ANÚNCIOS META ADS — INTERNA -->
+<!-- ============================================ -->
+<section id="ads-library" class="py-16 md:py-24 bg-slate-100 border-t-4 border-brand-700">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="text-center mb-10">
+      <span class="text-xs font-bold uppercase tracking-widest text-brand-700">Uso interno · Marketing</span>
+      <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-3">Biblioteca de Anúncios — Meta Ads</h2>
+      <p class="text-slate-600 mt-3 max-w-2xl mx-auto">20 copies prontas para Instagram e Facebook, organizadas por ângulo psicológico. Clique em "Copiar" para usar.</p>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="flex flex-wrap justify-center gap-2 mb-8">
+      <button class="ad-filter px-4 py-2 rounded-full text-sm font-semibold border border-slate-300 bg-white text-slate-700" data-filter="todos" data-active="true">Todos (20)</button>
+      <button class="ad-filter px-4 py-2 rounded-full text-sm font-semibold border border-slate-300 bg-white text-slate-700" data-filter="medo">Medo de prejuízo</button>
+      <button class="ad-filter px-4 py-2 rounded-full text-sm font-semibold border border-slate-300 bg-white text-slate-700" data-filter="educacional">Educacional</button>
+      <button class="ad-filter px-4 py-2 rounded-full text-sm font-semibold border border-slate-300 bg-white text-slate-700" data-filter="empoderamento">Empoderamento</button>
+      <button class="ad-filter px-4 py-2 rounded-full text-sm font-semibold border border-slate-300 bg-white text-slate-700" data-filter="familia">Família</button>
+      <button class="ad-filter px-4 py-2 rounded-full text-sm font-semibold border border-slate-300 bg-white text-slate-700" data-filter="lojista">Revendedor</button>
+      <button class="ad-filter px-4 py-2 rounded-full text-sm font-semibold border border-slate-300 bg-white text-slate-700" data-filter="depoimento">Storytelling</button>
+      <button class="ad-filter px-4 py-2 rounded-full text-sm font-semibold border border-slate-300 bg-white text-slate-700" data-filter="urgencia">Urgência</button>
+      <button class="ad-filter px-4 py-2 rounded-full text-sm font-semibold border border-slate-300 bg-white text-slate-700" data-filter="racional">Racional / Preço</button>
+      <button class="ad-filter px-4 py-2 rounded-full text-sm font-semibold border border-slate-300 bg-white text-slate-700" data-filter="polemico">Polêmico</button>
+    </div>
+
+    <div id="ads-grid" class="grid md:grid-cols-2 gap-5">
+
+      <!-- 1 -->
+      <article class="ad-card p-6" data-cat="medo">
+        <button class="copy-btn">Copiar</button>
+        <p class="ad-angle mb-2">01 · Medo de prejuízo</p>
+        <h3 class="font-bold text-slate-900 mb-3">Headline forte</h3>
+        <div class="ad-body">Você está prestes a comprar um carro de R$ 60 mil. Quanto vale ter certeza de que ele não é um abacaxi?
+
+Por R$ 29,90, o Achecar revela tudo sobre a placa: leilão, sinistro, roubo, débitos. Em 30 segundos.
+
+👉 Consulte antes de assinar qualquer contrato.</div>
+      </article>
+
+      <!-- 2 -->
+      <article class="ad-card p-6" data-cat="medo">
+        <button class="copy-btn">Copiar</button>
+        <p class="ad-angle mb-2">02 · Medo de prejuízo</p>
+        <h3 class="font-bold text-slate-900 mb-3">História real</h3>
+        <div class="ad-body">"Paguei à vista. 3 meses depois descobri que o carro era de leilão estrutural."
+
+O Marcos perdeu R$ 47 mil. Por R$ 29,90, ele teria evitado.
+
+Não seja a próxima estatística. Consulte a placa no Achecar.</div>
+      </article>
+
+      <!-- 3 -->
+      <article class="ad-card p-6" data-cat="medo">
+        <button class="copy-btn">Copiar</button>
+        <p class="ad-angle mb-2">03 · Medo de prejuízo</p>
+        <h3 class="font-bold text-slate-900 mb-3">Estatística chocante</h3>
+        <div class="ad-body">1 em cada 4 carros usados no Brasil tem histórico oculto.
+
+Sinistro grave, leilão, roubo, KM adulterada. O vendedor não vai te contar.
+
+Descubra em 30 segundos pela placa → achecar.com.br</div>
+      </article>
+
+      <!-- 4 -->
+      <article class="ad-card p-6" data-cat="educacional">
+        <button class="copy-btn">Copiar</button>
+        <p class="ad-angle mb-2">04 · Educacional</p>
+        <h3 class="font-bold text-slate-900 mb-3">"Não sabia que dava"</h3>
+        <div class="ad-body">Sabia que dá pra descobrir tudo sobre um carro só com a placa?
+
+Histórico de leilão, batidas, donos anteriores, débitos, recall — sem precisar do CPF do vendedor.
+
+Teste agora: digite a placa e veja.</div>
+      </article>
+
+      <!-- 5 -->
+      <article class="ad-card p-6" data-cat="educacional">
+        <button class="copy-btn">Copiar</button>
+        <p class="ad-angle mb-2">05 · Educacional</p>
+        <h3 class="font-bold text-slate-900 mb-3">Curiosidade pessoal</h3>
+        <div class="ad-body">Digita a placa do SEU carro aqui. Você vai se surpreender com o que aparece.
+
+(Spoiler: 78% das pessoas descobrem alguma informação que não sabiam sobre o próprio veículo.)</div>
+      </article>
+
+      <!-- 6 -->
+      <article class="ad-card p-6" data-cat="educacional">
+        <button class="copy-btn">Copiar</button>
+        <p class="ad-angle mb-2">06 · Educacional</p>
+        <h3 class="font-bold text-slate-900 mb-3">Hack de quem entende</h3>
+        <div class="ad-body">Dica de quem entende de carro: ANTES de fazer test-drive, consulte a placa.
+
+30 segundos. R$ 29,90. Pode te economizar R$ 40 mil em prejuízo.
+
+Achecar — o relatório que o vendedor preferia que você não visse.</div>
+      </article>
+
+      <!-- 7 -->
+      <article class="ad-card p-6" data-cat="empoderamento">
+        <button class="copy-btn">Copiar</button>
+        <p class="ad-angle mb-2">07 · Empoderamento</p>
+        <h3 class="font-bold text-slate-900 mb-3">Vire o jogo</h3>
+        <div class="ad-body">Vendedor: "Pode confiar, esse carro nunca bateu."
+
+Você (esperto): consulta a placa no Achecar e vê 3 sinistros graves.
+
+Negociação termina em 5 minutos. Você sai R$ 50 mil mais rico.</div>
+      </article>
+
+      <!-- 8 -->
+      <article class="ad-card p-6" data-cat="empoderamento">
+        <button class="copy-btn">Copiar</button>
+        <p class="ad-angle mb-2">08 · Empoderamento</p>
+        <h3 class="font-bold text-slate-900 mb-3">Inversão de poder</h3>
+        <div class="ad-body">Pare de aceitar a palavra do vendedor.
+
+Por R$ 29,90 você vê o histórico real do carro. Quem manda na negociação agora é VOCÊ.
+
+Achecar — informação é poder. Use a seu favor.</div>
+      </article>
+
+      <!-- 9 -->
+      <article class="ad-card p-6" data-cat="empoderamento">
+        <button class="copy-btn">Copiar</button>
+        <p class="ad-angle mb-2">09 · Empoderamento</p>
+        <h3 class="font-bold text-slate-900 mb-3">Carrossel checklist</h3>
+        <div class="ad-body">Antes de fechar carro usado, faça esses 5 checks:
+
+1. Test-drive ✅
+2. Vistoria mecânica ✅
+3. Documento conferido ✅
+4. Consulta de placa Achecar ✅
+5. Negociação fechada
+
+Pulou o passo 4? Você é metade comprador, metade apostador.</div>
+      </article>
+
+      <!-- 10 -->
+      <article class="ad-card p-6" data-cat="familia">
+        <button class="copy-btn">Copiar</button>
+        <p class="ad-angle mb-2">10 · Família</p>
+        <h3 class="font-bold text-slate-900 mb-3">Apelo emocional</h3>
+        <div class="ad-body">Esse carro vai levar sua família pra escola, pro trabalho, pra estrada.
+
+Você tem 100% de certeza que o chassi nunca foi soldado em batida grave?
+
+O Achecar te conta. R$ 29,90.</div>
+      </article>
+
+      <!-- 11 -->
+      <article class="ad-card p-6" data-cat="familia">
+        <button class="copy-btn">Copiar</button>
+        <p class="ad-angle mb-2">11 · Família</p>
+        <h3 class="font-bold text-slate-900 mb-3">Primeiro carro do filho</h3>
+        <div class="ad-body">Comprando o primeiro carro pro seu filho?
+
+Antes do "tá fechado", consulte a placa. Carro de leilão estrutural pode ter solda em local que mata em batida de 40 km/h.
+
+R$ 29,90 para dormir tranquilo.</div>
+      </article>
+
+      <!-- 12 -->
+      <article class="ad-card p-6" data-cat="lojista">
+        <button class="copy-btn">Copiar</button>
+        <p class="ad-angle mb-2">12 · Revendedor</p>
+        <h3 class="font-bold text-slate-900 mb-3">Lojista de seminovos</h3>
+        <div class="ad-body">Lojista, seu lucro está nos detalhes.
+
+Comprou um carro com gravame escondido na entrada da troca? Adeus margem.
+
+Plano Achecar Revendedor: consultas ilimitadas por R$ 299/mês. Paga sozinho na primeira pegadinha evitada.</div>
+      </article>
+
+      <!-- 13 -->
+      <article class="ad-card p-6" data-cat="lojista">
+        <button class="copy-btn">Copiar</button>
+        <p class="ad-angle mb-2">13 · Revendedor</p>
+        <h3 class="font-bold text-slate-900 mb-3">Despachante / Profissional</h3>
+        <div class="ad-body">Seus clientes confiam em você. Honre essa confiança.
+
+Achecar para despachantes: relatório premium em segundos, white-label disponível, API integrável.
+
+R$ 299/mês. Consultas ilimitadas. Cadastro em 2 minutos.</div>
+      </article>
+
+      <!-- 14 -->
+      <article class="ad-card p-6" data-cat="depoimento">
+        <button class="copy-btn">Copiar</button>
+        <p class="ad-angle mb-2">14 · Storytelling</p>
+        <h3 class="font-bold text-slate-900 mb-3">Depoimento UGC</h3>
+        <div class="ad-body">"Eu ia transferir R$ 65 mil naquela hora. Resolvi consultar a placa por curiosidade. O carro tinha sido leiloado 2 vezes."
+
+— Patrícia, SP.
+
+Você quer ser a próxima história ou a próxima estatística?</div>
+      </article>
+
+      <!-- 15 -->
+      <article class="ad-card p-6" data-cat="depoimento">
+        <button class="copy-btn">Copiar</button>
+        <p class="ad-angle mb-2">15 · Storytelling</p>
+        <h3 class="font-bold text-slate-900 mb-3">POV vídeo curto</h3>
+        <div class="ad-body">POV: você está no estacionamento da loja. Vendedor sorrindo. Contrato na mão.
+
+Você abre o Achecar. Digita a placa. Em 30 segundos descobre que o carro tem R$ 8.300 em multas atrasadas.
+
+"Vou pensar melhor, obrigado."
+
+(Mais R$ 8.300 no seu bolso.)</div>
+      </article>
+
+      <!-- 16 -->
+      <article class="ad-card p-6" data-cat="urgencia">
+        <button class="copy-btn">Copiar</button>
+        <p class="ad-angle mb-2">16 · Urgência</p>
+        <h3 class="font-bold text-slate-900 mb-3">Test-drive amanhã</h3>
+        <div class="ad-body">Vai ver um carro amanhã?
+
+30 segundos AGORA podem te economizar 30 anos de arrependimento.
+
+→ achecar.com.br/placa</div>
+      </article>
+
+      <!-- 17 -->
+      <article class="ad-card p-6" data-cat="urgencia">
+        <button class="copy-btn">Copiar</button>
+        <p class="ad-angle mb-2">17 · Urgência</p>
+        <h3 class="font-bold text-slate-900 mb-3">Já no carro</h3>
+        <div class="ad-body">Está literalmente sentado dentro do carro, sentindo o cheiro de "novo"?
+
+Pega o celular. Digita a placa. Veja se ele já passou por um pátio de leilão.
+
+30 segundos. R$ 29,90. Você decide o que fazer com a informação.</div>
+      </article>
+
+      <!-- 18 -->
+      <article class="ad-card p-6" data-cat="racional">
+        <button class="copy-btn">Copiar</button>
+        <p class="ad-angle mb-2">18 · Racional</p>
+        <h3 class="font-bold text-slate-900 mb-3">Conta na ponta do lápis</h3>
+        <div class="ad-body">R$ 29,90 = 0,05% do valor médio de um seminovo.
+
+Seguro contra prejuízo de R$ 40-60 mil.
+
+Qualquer outra apólice cobra muito mais por muito menos.
+
+Achecar. O investimento mais óbvio antes de qualquer compra de carro.</div>
+      </article>
+
+      <!-- 19 -->
+      <article class="ad-card p-6" data-cat="racional">
+        <button class="copy-btn">Copiar</button>
+        <p class="ad-angle mb-2">19 · Racional</p>
+        <h3 class="font-bold text-slate-900 mb-3">Comparação direta</h3>
+        <div class="ad-body">Vistoria mecânica: R$ 250
+Despachante: R$ 180
+Seguro auto anual: R$ 2.400
+Achecar: R$ 29,90
+
+Adivinha qual é o investimento mais inteligente da lista quando você ainda nem comprou o carro?</div>
+      </article>
+
+      <!-- 20 -->
+      <article class="ad-card p-6" data-cat="polemico">
+        <button class="copy-btn">Copiar</button>
+        <p class="ad-angle mb-2">20 · Polêmico</p>
+        <h3 class="font-bold text-slate-900 mb-3">Choque controlado</h3>
+        <div class="ad-body">Loja de seminovos NÃO quer que você veja esse anúncio.
+
+Por R$ 29,90, você descobre tudo que ela escondeu sobre o carro.
+
+Histórico de leilão, sinistro, roubo, débitos. Em 30 segundos. Pela placa.
+
+👉 achecar.com.br</div>
+      </article>
+
+    </div>
+
+    <!-- ESTRATÉGIA DE CAMPANHA -->
+    <div class="mt-12 card p-7 max-w-4xl mx-auto">
+      <h3 class="font-bold text-slate-900 text-xl mb-4">📊 Estrutura de campanha sugerida</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left border-b border-slate-200">
+              <th class="py-2 pr-4 font-semibold text-slate-700">Conjunto</th>
+              <th class="py-2 pr-4 font-semibold text-slate-700">Objetivo</th>
+              <th class="py-2 pr-4 font-semibold text-slate-700">Público</th>
+              <th class="py-2 pr-4 font-semibold text-slate-700">Anúncios</th>
+            </tr>
+          </thead>
+          <tbody class="text-slate-700">
+            <tr class="border-b border-slate-100">
+              <td class="py-3 pr-4 font-semibold">TOFU — Educação</td>
+              <td class="py-3 pr-4">Tráfego / Vídeo</td>
+              <td class="py-3 pr-4">Interesses: Webmotors, OLX Autos, carros usados</td>
+              <td class="py-3 pr-4 font-mono text-xs">04, 05, 09</td>
+            </tr>
+            <tr class="border-b border-slate-100">
+              <td class="py-3 pr-4 font-semibold">MOFU — Consideração</td>
+              <td class="py-3 pr-4">Conversão</td>
+              <td class="py-3 pr-4">Lookalike compradores + retarget visitantes</td>
+              <td class="py-3 pr-4 font-mono text-xs">01, 07, 14, 16</td>
+            </tr>
+            <tr class="border-b border-slate-100">
+              <td class="py-3 pr-4 font-semibold">BOFU — Conversão</td>
+              <td class="py-3 pr-4">Conversão direta</td>
+              <td class="py-3 pr-4">Retarget formulário não concluído</td>
+              <td class="py-3 pr-4 font-mono text-xs">17, 18, 19</td>
+            </tr>
+            <tr>
+              <td class="py-3 pr-4 font-semibold">B2B Revendedor</td>
+              <td class="py-3 pr-4">Lead / WhatsApp</td>
+              <td class="py-3 pr-4">Cargo: lojista, vendedor de carros, despachante</td>
+              <td class="py-3 pr-4 font-mono text-xs">12, 13</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="grid md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-100 text-sm">
+        <div><span class="text-slate-500">Budget inicial</span><p class="font-bold text-slate-900">R$ 150-300/dia</p></div>
+        <div><span class="text-slate-500">CTR alvo</span><p class="font-bold text-slate-900">> 2%</p></div>
+        <div><span class="text-slate-500">CPC alvo</span><p class="font-bold text-slate-900">< R$ 1,80</p></div>
+        <div><span class="text-slate-500">CPA avulsa</span><p class="font-bold text-slate-900">< R$ 18</p></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="bg-slate-900 text-slate-400 py-12">
+  <div class="max-w-6xl mx-auto px-4 grid md:grid-cols-4 gap-8 text-sm">
+    <div>
+      <div class="flex items-center gap-2 mb-3">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+        <span class="font-bold text-white text-lg">Achecar</span>
+      </div>
+      <p class="text-xs leading-relaxed">Consulta de placa completa para quem não quer comprar abacaxi.</p>
+    </div>
+    <div>
+      <p class="text-white font-semibold mb-3">Produto</p>
+      <ul class="space-y-2 text-xs">
+        <li><a href="#informacoes" class="hover:text-white">O que descobre</a></li>
+        <li><a href="#planos" class="hover:text-white">Planos</a></li>
+        <li><a href="#" class="hover:text-white">API revendedor</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="text-white font-semibold mb-3">Suporte</p>
+      <ul class="space-y-2 text-xs">
+        <li><a href="#faq" class="hover:text-white">FAQ</a></li>
+        <li><a href="#" class="hover:text-white">Falar conosco</a></li>
+        <li><a href="#" class="hover:text-white">Central de ajuda</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="text-white font-semibold mb-3">Legal</p>
+      <ul class="space-y-2 text-xs">
+        <li><a href="#" class="hover:text-white">Termos de uso</a></li>
+        <li><a href="#" class="hover:text-white">Política de privacidade</a></li>
+        <li><a href="#" class="hover:text-white">LGPD</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="max-w-6xl mx-auto px-4 mt-8 pt-6 border-t border-slate-800 text-xs text-slate-500 flex flex-wrap justify-between gap-2">
+    <span>© Achecar 2026 · Todos os direitos reservados</span>
+    <span>Dados oficiais SENATRAN · LGPD compliant</span>
+  </div>
+</footer>
+
+<script>
+  // Filtro biblioteca de anúncios
+  document.querySelectorAll('.ad-filter').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.ad-filter').forEach(b => b.dataset.active = 'false');
+      btn.dataset.active = 'true';
+      const filter = btn.dataset.filter;
+      document.querySelectorAll('#ads-grid .ad-card').forEach(card => {
+        card.style.display = (filter === 'todos' || card.dataset.cat === filter) ? '' : 'none';
+      });
+    });
+  });
+
+  // Copiar copy do anúncio
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const body = btn.parentElement.querySelector('.ad-body').innerText;
+      navigator.clipboard.writeText(body).then(() => {
+        const original = btn.innerText;
+        btn.innerText = 'Copiado ✓';
+        btn.style.background = '#dcfce7';
+        btn.style.color = '#15803d';
+        setTimeout(() => {
+          btn.innerText = original;
+          btn.style.background = '';
+          btn.style.color = '';
+        }, 1500);
+      });
+    });
+  });
+
+  // Auto-uppercase no input da placa
+  document.querySelectorAll('.placa-input').forEach(input => {
+    input.addEventListener('input', (e) => {
+      e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    });
+  });
+</script>
+
+</body>
+</html>
